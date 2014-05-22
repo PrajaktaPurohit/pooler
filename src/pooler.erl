@@ -463,6 +463,11 @@ take_member_from_pool(#pool{init_count = InitCount,
         [] when NumCanAdd =< 0  ->
             send_metric(Pool, error_no_members_count, {inc, 1}, counter),
             send_metric(Pool, events, error_no_members, history),
+            % TODO: Check if this fixes the structure of the count graphs,
+            %% in_use_count = pool_size
+            %% free_count = 0
+            send_metric(Pool, in_use_count, Pool#pool.in_use_count, histogram),
+            send_metric(Pool, free_count, Pool#pool.free_count, histogram),
             {error_no_members, Pool};
         [] when NumCanAdd > 0 ->
             %% Limit concurrently starting members to init_count. Add
@@ -476,6 +481,11 @@ take_member_from_pool(#pool{init_count = InitCount,
             Pool1 = add_members_async(NumToAdd, Pool),
             send_metric(Pool, error_no_members_count, {inc, 1}, counter),
             send_metric(Pool, events, error_no_members, history),
+            % TODO: Check if this fixes the structure of the count graphs,
+            %% in_use_count = pool_size
+            %% free_count = 0
+            send_metric(Pool, in_use_count, Pool#pool.in_use_count, histogram),
+            send_metric(Pool, free_count, Pool#pool.free_count, histogram),
             {error_no_members, Pool1};
         [Pid|Rest] ->
             Pool1 = Pool#pool{free_pids = Rest, in_use_count = NumInUse + 1,
